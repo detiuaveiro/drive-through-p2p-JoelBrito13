@@ -7,6 +7,8 @@ import random
 import logging
 import argparse
 import threading
+import queue
+from node import Node 
 
 
 logging.basicConfig(level=logging.DEBUG,
@@ -16,9 +18,16 @@ logger = logging.getLogger('Restaurant')
 
 
 class Restaurant(threading.Thread):
-    def __init__(self, port=5000, ide=0):
+    def __init__(self, id, address,name, successor_addr = None):
         threading.Thread.__init__(self)
-        self.id = ide
-        self.port = port
+        self.node = Node(id, address, name, successor_addr)
+
+
     def run(self):
-        pass
+        self.node.start()
+
+    def __str__(self):
+        return str(self.node)
+
+    def __repr__(self):
+        return self.__str__()

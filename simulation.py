@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import time
 import pickle
 import socket
@@ -19,12 +18,12 @@ logging.basicConfig(level=logging.DEBUG,
 
 def main():
 
-logger = logging.getLogger('RESTAURANT_RING')
+    logger = logging.getLogger('RESTAURANT_RING')
     ring_list=[]
     # list with all the nodes
     #self, id, address, request, successor_addr=None
     restaurant   = Restaurant  (id=0,address = ('localhost', 5000), name = 'RESTAURANT') 
-    receptionist = Receptionist(id=1,address = ('localhost', 5001), name = 'RECEPCIONIST', successor_addr= ('localhost', 5000))
+    clerk        = Clerk       (id=1,address = ('localhost', 5001), name = 'CLERK', successor_addr= ('localhost', 5000))
     chef         = Chef        (id=2,address = ('localhost', 5002), name = 'CHEF', successor_addr= ('localhost', 5000))
     waiter       = Waiter      (id=3,address = ('localhost', 5003), name = 'WAITER', successor_addr= ('localhost', 5000))
 
@@ -32,9 +31,9 @@ logger = logging.getLogger('RESTAURANT_RING')
     ring_list.append(restaurant)
     logger.info(restaurant)
 
-    receptionist.start()
-    ring_list.append(receptionist)
-    logger.info(receptionist)
+    clerk.start()
+    ring_list.append(clerk)
+    logger.info(clerk)
 
     chef.start()
     ring_list.append(chef)

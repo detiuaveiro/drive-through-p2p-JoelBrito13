@@ -1,14 +1,11 @@
 # coding: utf-8
-import random
 import socket
 import threading
 import logging
 import pickle
 from utils import *
 import queue
-
 import time
-
 
 class Node(threading.Thread):
     def __init__(self, id, address, name, successor_addr, timeout=1):
@@ -18,9 +15,10 @@ class Node(threading.Thread):
         self.name=name
         self.successor_id = 0
         self.queue = queue.Queue()
-        self.table = {'RECEPCIONIST':None,'CHEF':None,'RESTAURANT':None,'WAITER':None}
+        self.table = {'RESTAURANT':None,'CLERK':None,'CHEF':None,'WAITER':None}
         self.table[self.name]=self.id
         self.discovered=False
+        self.all_discovered=False
         
         if successor_addr is None:
             self.successor_addr = address
@@ -48,7 +46,6 @@ class Node(threading.Thread):
                 return None, addr
             else:
                 return p, addr
-                
 
     def queuein(self):
         return {}
@@ -56,34 +53,41 @@ class Node(threading.Thread):
     def queueout(self):
         return {}        
 
-
-    def discover(self, args):
-        temp_table = args['table']
-        for key in temp_table:
-            if temp_table[key] and not self.table[key]:
-                self.table[key]=temp_table[key]
-        if not [x for x in self.table if not self.table[x]]:
+    def discover(self, table, discovered_table):
+        for key in table:
+            if not table[key] == None and self.table[key] == None:
+                self.table[key]=table[key]
+        if not self.discovered and not [x for x in self.table if self.table[x] == None]:#check if table is complete
             self.discovered=True
-            self.logger.info(self)
-        return {'method':'NODE_DISCOVERY', 'args':{'table':self.table}}
+            self.logger.debug('Discovered all entities-> {}'.format(self.table))
+        
+        discovered_table[self.id] = self.discovered
+
+        if check_lst_true(lst=discovered_table): #utils
+            self.all_discovered=True
+            return None
+
+        return {'id':self.successor_id, 'method':'NODE_DISCOVERY', 'args':{'table':self.table,'discovered_table':discovered_table}}
 
     def run(self):
         self.socket.bind(self.address)
+        send_discover=True
         while True:
-            self.logger.info(self)
+            #self.logger.info(self)
             if not self.inside_ring:
-                #time.sleep(int(random.random()*5)
-
                 o = {'method': 'JOIN_REQ', 'args': {'id':self.id, 'address':self.address}}
                 self.send(self.successor_addr, o)
-            #elif not self.discovered:
-            #    o = { 'method':'NODE_DISCOVERY', 'args':{'table':self.table}}
-            #    self.send(self.successor_addr, o)
+
+            elif send_discover: #just need to be sendeed one time
+                o = {'id': self.successor_id, 'method':'NODE_DISCOVERY', 'args':{'table':self.table,'discovered_table':[False]*4}}
+                self.send(self.successor_addr, o)
+                send_discover=False
+
             p, addr = self.recv()
             if p is not None:
                 o = pickle.loads(p)
                 args=o['args']
-                self.logger.info('O: %s', o)
+                self.logger.info('O: {}'.format(o))
                 if o['method'] == 'JOIN_REQ':
                     if contains_successor(self_id=self.id, successor_id=args['id']):
                         self.successor_addr = args['address']
@@ -91,13 +95,17 @@ class Node(threading.Thread):
                         o={'id':self.successor_id, 'method':'JOIN_REP', 'args':{}}
                     self.send(self.successor_addr, o)
 
-                elif o['method'] == 'NODE_DISCOVERY':
-                    o = self.discover(args)
-                
                 elif o['id']==self.id:
                     if o['method'] == 'JOIN_REP':
+                        self.logger.debug('Joined the ring')
                         self.inside_ring = True
-                        
+
+                    elif o['method'] == 'NODE_DISCOVERY' and not self.all_discovered:
+                        o = self.discover(table = args['table'], discovered_table=args['discovered_table'])
+                        if o is not None:
+                            self.send(self.successor_addr, o)
+                    
+                            
 #                    self.queuein({'method':o['method'],'args':o['args']})
                     #else:
 #                        self.queuein(o['method'],o['args'])
@@ -110,7 +118,7 @@ class Node(threading.Thread):
 
 
     def __str__(self):
-        return 'Node {}: id:{} Successor: {}:{}'.format(self.name, self.id, self.successor_id, self.successor_addr[1])
+        return 'Successor: {} InsideRing: {} Table: {}'.format( self.successor_id,self.inside_ring, self.table)
 
     def __repr__(self):
         return self.__str__()
