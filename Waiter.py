@@ -7,7 +7,8 @@ import random
 import logging
 import argparse
 import threading
-
+import queue
+from node import Node 
 
 logging.basicConfig(level=logging.DEBUG,
 					format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -19,10 +20,6 @@ class Waiter(threading.Thread):
 	def __init__(self, id, address,name, successor_addr = None):
 		threading.Thread.__init__(self)
 		self.node = Node(id, address, name, successor_addr)
-		self.id = id
-		self.adress = address
-		self.ring = ring
-		self.table={'RECEPCIONIST':None,'CHEF':None,'RESTAURANT':None,'WAITER':1}
 		self.deliver = []
 
 	def check_deliver(self,ticket):
@@ -34,7 +31,6 @@ class Waiter(threading.Thread):
 		return False
 
 	def run(self):
-
 		self.node.start()
 		o = self.node.queuein()
 		d = self.node.deliver

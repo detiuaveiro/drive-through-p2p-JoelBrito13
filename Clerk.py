@@ -7,7 +7,8 @@ import random
 import logging
 import argparse
 import threading
-import ring from ring
+import queue
+from node import Node 
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -19,13 +20,7 @@ class Clerk(threading.Thread):
     def __init__(self, id, address,name, successor_addr = None):
         threading.Thread.__init__(self)
         self.node = Node(id, address, name, successor_addr)
-        self.id = id
-        self.adress = address
-        self.ring = ring
         self.ticket = 0
-        self.table={'RECEPCIONIST':1,'CHEF':None,'RESTAURANT':None,'WAITER':None}
-
-
 
     def run(self):
         self.node.start()
@@ -38,9 +33,7 @@ class Clerk(threading.Thread):
             self.node.queueout({'id':t['CHEF'],'method':'ORDER','args': {'order':{v['args']},'ticket':self.ticket}})
         elif v['method'] == 'PICKUP':
             self.node.queueout({'id':t['WAITER'],'method':'PICKUP','args':{'ticket':self.ticket}})
-            
 
-        pass
     def __str__(self):
         return str(self.node)
 

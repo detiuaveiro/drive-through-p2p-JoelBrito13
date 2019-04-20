@@ -7,9 +7,9 @@ def contains_successor(self_id, successor_id):
         return True
     return False
 
-def contains_predecessor(self_id, predecessor_id):
-    if self_id-1 == predecessor_id:
+def check_lst_true(lst):
+    if lst == []:
         return True
-    elif self_id==0 and predecessor_id==3:
-        return True
-    return False
+    elif lst[0] == False:
+        return False
+    return check_lst_true(lst[1:])
