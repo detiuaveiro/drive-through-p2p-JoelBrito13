@@ -8,7 +8,7 @@ import logging
 import argparse
 import threading
 import queue
-from node import Node 
+from Node import Node 
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -24,16 +24,17 @@ class Clerk(threading.Thread):
 
     def run(self):
         self.node.start()
-
-        o = self.node.queuein()
-        if o is not None:
-            t = self.node.table
-            if o['method'] == 'ORDER':  
-                self.node.send(o['args']['address'],self.ticket)
-                self.counter= self.counter+1
-                self.node.queueout({'id':t['CHEF'],'method':'ORDER','args': {'order':{o['args']},'ticket':self.ticket}})
-            elif o['method'] == 'PICKUP':
-                self.node.queueout({'id':t['WAITER'],'method':'PICKUP','args':{'ticket':self.ticket}})
+        time.sleep(3)
+        t = self.node.table
+        while True:            
+            o = self.node.queuein()
+            if o is not None:
+                if o['method'] == 'ORDER':  
+                    self.node.send(o['args']['address'],{'method':'ORDER_REP','args':{'ticket':self.ticket}})
+                    self.node.queueout({'id':t['CHEF'],'method':'ORDER_FOOD','args':{'order':o['args']['order'],'ticket':self.ticket}})
+                    self.ticket= self.ticket+1
+                elif o['method'] == 'PICKUP':
+                    self.node.queueout({'id':t['WAITER'],'method':'PICKUP_REQ','args':{'ticket':o['args']['order']['ticket'],'address':o['args']['address']}})
 
     def __str__(self):
         return str(self.node)

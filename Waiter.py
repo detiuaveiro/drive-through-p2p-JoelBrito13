@@ -8,7 +8,7 @@ import logging
 import argparse
 import threading
 import queue
-from node import Node 
+from Node import Node 
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -32,16 +32,18 @@ class Waiter(threading.Thread):
 
     def run(self):
         self.node.start()
-        o = self.node.queuein()
-        if o is not None:
-            if v['method'] == 'DELIVER_ORDER':
-               if self.check_deliver(v['args']['ticket']):
-                   logger.info('Delivering the food...%s')
-                   logger.info('Payment receiving from client %s', v['args']['ticket'])
-            elif v['method'] == 'PICKUP':
-               if self.check_deliver(v['args']['ticket']):
-                   logger.info('Delivering the food...%s')
-                   logger.info('Payment receiving from client %s', v['args']['ticket'])
+        time.sleep(3)
+        while True:
+            o = self.node.queuein()
+            if o is not None:
+                if o['method'] == 'DELIVER_ORDER':
+                   if self.check_deliver(o['args']['ticket']):
+                       logger.info('Delivering the food...%s')
+                       logger.info('Payment receiving from client %s', o['args']['ticket'])
+                elif o['method'] == 'PICKUP':
+                   if self.check_deliver(o['args']['ticket']):
+                       logger.info('Delivering the food...%s')
+                       logger.info('Payment receiving from client %s', o['args']['ticket'])
     def __str__(self):
         return str(self.node)
 
