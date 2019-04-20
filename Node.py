@@ -128,7 +128,7 @@ class Node(threading.Thread):
                     self.send(self.successor_addr, o)
                 else:
                     self.send(self.successor_addr, o)
-                time.sleep(.1)
+                #time.sleep(.1)
 
     def __str__(self):
         return 'Successor: {} InsideRing: {} Table: {}'.format( self.successor_id,self.inside_ring, self.table)
