@@ -24,15 +24,16 @@ class Clerk(threading.Thread):
 
     def run(self):
         self.node.start()
+
         o = self.node.queuein()
-        t = self.node.table
-        v = o.get()
-        if v['method'] == 'ORDER':  
-            self.node.send(v['args']['address'],self.ticket)
-            self.counter= self.counter+1
-            self.node.queueout({'id':t['CHEF'],'method':'ORDER','args': {'order':{v['args']},'ticket':self.ticket}})
-        elif v['method'] == 'PICKUP':
-            self.node.queueout({'id':t['WAITER'],'method':'PICKUP','args':{'ticket':self.ticket}})
+        if o is not None:
+            t = self.node.table
+            if o['method'] == 'ORDER':  
+                self.node.send(o['args']['address'],self.ticket)
+                self.counter= self.counter+1
+                self.node.queueout({'id':t['CHEF'],'method':'ORDER','args': {'order':{o['args']},'ticket':self.ticket}})
+            elif o['method'] == 'PICKUP':
+                self.node.queueout({'id':t['WAITER'],'method':'PICKUP','args':{'ticket':self.ticket}})
 
     def __str__(self):
         return str(self.node)

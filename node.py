@@ -14,7 +14,8 @@ class Node(threading.Thread):
         self.address = address
         self.name=name
         self.successor_id = 0
-        self.queue = queue.Queue()
+        self.queue_in = queue.Queue()
+        self.queue_out = queue.Queue()
         self.table = {'RESTAURANT':None,'CLERK':None,'CHEF':None,'WAITER':None}
         self.table[self.name]=self.id
         self.discovered=False
@@ -48,11 +49,13 @@ class Node(threading.Thread):
                 return p, addr
 
     def queuein(self):
-        return {}
+        if self.queue_in.empty():
+            return None
+        return self.queue_in.get()
 
-    def queueout(self):
-        return {}        
-
+    def queueout(self,o):
+        self.queue_out.put(o)
+                
     def discover(self, table, discovered_table):
         for key in table:
             if not table[key] == None and self.table[key] == None:
@@ -95,7 +98,7 @@ class Node(threading.Thread):
                         o={'id':self.successor_id, 'method':'JOIN_REP', 'args':{}}
                     self.send(self.successor_addr, o)
 
-                elif o['id']==self.id:
+                elif 'id' in o and o['id']==self.id:
                     if o['method'] == 'JOIN_REP':
                         self.logger.debug('Joined the ring')
                         self.inside_ring = True
@@ -104,14 +107,21 @@ class Node(threading.Thread):
                         o = self.discover(table = args['table'], discovered_table=args['discovered_table'])
                         if o is not None:
                             self.send(self.successor_addr, o)
-                    
-                            
-#                    self.queuein({'method':o['method'],'args':o['args']})
-                    #else:
-#                        self.queuein(o['method'],o['args'])
-                #elif o['id'] == None:
-                #    if not self.queue_out.empty():#or timeout
-                #        o=self.queue_out.get()
+                    else:
+                        self.queue_in.put({'method':o['method'],'args':o['args']})
+                        if not self.queue_out.empty():
+                            o = self.queue_out.get()
+                        else:
+                            o = {'id':None,'method':None,'args':None}
+                        self.send(self.successor_addr, o)
+
+                elif 'id' not in o and o['method'] in ['ORDER','PICKUP']:
+                    o = {'id':self.table['CLERK'],'method': o['method'], 'args': o[args].update({'address': addr})}
+                
+                elif 'id' in o and o['id'] == None:
+                    if not self.queue_out.empty():
+                        o = self.queue_out.get()
+                    self.send(self.successor_addr, o)
                 else:
                     self.send(self.successor_addr, o)
                 

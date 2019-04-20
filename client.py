@@ -22,14 +22,20 @@ def main(port, ring, timeout):
     sock.settimeout(timeout)
     sock.bind(('localhost', port))
 
+    # Generate a request
+    order = {'hamburger': 0, 'fries': 0, 'drink': 0}
+    quantity = random.randint(1, 5)
+    for i in range(quantity):
+        order[random.choice(['hamburger', 'fries', 'drink'])] += 1
+
     # Wait for a random time
     delta = random.gauss(2, 0.5)
     logger.info('Wait for %f seconds', delta)
     time.sleep(delta)
 
     # Request some food
-    logger.info('Request some food...')
-    p = pickle.dumps({'method': 'ORDER', 'args': {'hamburger': 1}})
+    logger.info('Request some food: %s', order)
+    p = pickle.dumps({'method': 'ORDER', 'args': order})
     sock.sendto(p, ring)
 
     # Wait for Ticket
@@ -52,11 +58,10 @@ def main(port, ring, timeout):
 
     return 0
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pi HTTP server')
     parser.add_argument('-p', dest='port', type=int, help='client port', default=5004)
     parser.add_argument('-r', dest='ring', type=int, help='ring ports ', default=5000)
     parser.add_argument('-t', dest='timeout', type=int, help='socket timeout', default=30)
     args = parser.parse_args()
-    main(args.port, ('localhost', args.ring), args.timeout)
+main(args.port, ('localhost', args.ring), args.timeout)

@@ -21,7 +21,9 @@ class Restaurant(threading.Thread):
     def __init__(self, id, address,name, successor_addr = None):
         threading.Thread.__init__(self)
         self.node = Node(id, address, name, successor_addr)
-
+        o = self.node.queuein()
+        if o is not None:
+            pass
 
     def run(self):
         self.node.start()
