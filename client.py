@@ -24,7 +24,7 @@ def main(port, ring, timeout):
 
     # Generate a request
     order = {'hamburger': 0, 'fries': 0, 'drink': 0}
-    quantity = random.randint(1, 5)
+    quantity = random.randint(1,5)
     for i in range(quantity):
         order[random.choice(['hamburger', 'fries', 'drink'])] += 1
 
@@ -36,6 +36,7 @@ def main(port, ring, timeout):
     # Request some food
     logger.info('Request some food: %s', order)
     p = pickle.dumps({'method': 'ORDER', 'args': order})
+#    p = pickle.dumps({'method': 'ORDER', 'args':{'hamburger': 1, 'fries': 0, 'drink': 0}})
     sock.sendto(p, ring)
 
     # Wait for Ticket
@@ -54,14 +55,14 @@ def main(port, ring, timeout):
     logger.info('Got order %s', o['args'])
 
     # Close socket
-    socket.close()
 
     return 0
+    socket.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pi HTTP server')
     parser.add_argument('-p', dest='port', type=int, help='client port', default=5004)
     parser.add_argument('-r', dest='ring', type=int, help='ring ports ', default=5000)
-    parser.add_argument('-t', dest='timeout', type=int, help='socket timeout', default=30)
+    parser.add_argument('-t', dest='timeout', type=int, help='socket timeout', default=60)
     args = parser.parse_args()
 main(args.port, ('localhost', args.ring), args.timeout)

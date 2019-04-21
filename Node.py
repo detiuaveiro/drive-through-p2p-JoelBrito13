@@ -47,7 +47,6 @@ class Node(threading.Thread):
             else:
                 return p, addr
 
-
     def queuein(self):
         if self.queue_in.empty():
             return None
@@ -73,8 +72,9 @@ class Node(threading.Thread):
         self.socket.bind(self.address)
         send_discover=True
         first_msg=True
+        self.logger.info(self)
+        
         while True:
-            #self.logger.info(self)
             if not self.inside_ring:
                 o = {'method': 'JOIN_REQ', 'args': {'id':self.id, 'address':self.address}}
                 self.send(self.successor_addr, o)
@@ -88,7 +88,10 @@ class Node(threading.Thread):
             if p is not None:
                 o = pickle.loads(p)
                 args=o['args']
-                self.logger.info('O: {}'.format(o))
+                
+                #uncomment to see all the msgs
+                #self.logger.info('O: {}'.format(o))
+                
                 if not 'id' in o:
                     if o['method'] == 'JOIN_REQ':
                         if contains_successor(self_id=self.id, successor_id=args['id']):
@@ -108,6 +111,7 @@ class Node(threading.Thread):
                             self.queue_out.put(o)
 
                 elif o['id']==self.id:
+                   
                     if o['method'] == 'JOIN_REP':
                         self.logger.debug('Joined the ring')
                         self.inside_ring = True
@@ -131,8 +135,7 @@ class Node(threading.Thread):
                     self.send(self.successor_addr, o)
                 else:
                     self.send(self.successor_addr, o)
-                time.sleep(.1)
-
+                
     def __str__(self):
         return 'Successor: {} InsideRing: {} Table: {}'.format( self.successor_id,self.inside_ring, self.table)
 

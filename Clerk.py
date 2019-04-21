@@ -29,12 +29,21 @@ class Clerk(threading.Thread):
         while True:            
             o = self.node.queuein()
             if o is not None:
-                if o['method'] == 'ORDER':  
-                    self.node.send(o['args']['address'],{'method':'ORDER_REP','args':{'ticket':self.ticket}})
-                    self.node.queueout({'id':t['CHEF'],'method':'ORDER_FOOD','args':{'order':o['args']['order'],'ticket':self.ticket}})
+                method = o['method']
+                address = o['args']['address']
+                
+                if method == 'ORDER':  
+                    order = o['args']['order']
+                    logger.info("{}: {} {}".format(method,self.ticket, order))
+                    
+                    self.node.send(address,{'method':'ORDER_REP','args':{'ticket':self.ticket}})
+                    self.node.queueout({'id':t['CHEF'],'method':'ORDER_FOOD','args':{'order': order,'ticket':self.ticket}})
                     self.ticket= self.ticket+1
-                elif o['method'] == 'PICKUP':
-                    self.node.queueout({'id':t['WAITER'],'method':'PICKUP_REQ','args':{'ticket':o['args']['order']['ticket'],'address':o['args']['address']}})
+
+                elif method == 'PICKUP':
+                    ticket=o['args']['order']['ticket']
+                    logger.info("{}: {}".format(method,ticket))
+                    self.node.queueout({'id':t['WAITER'],'method':'PICKUP_REQ','args':{'ticket': ticket,'address':address}})
 
     def __str__(self):
         return str(self.node)
