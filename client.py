@@ -6,6 +6,7 @@ import socket
 import random
 import logging
 import argparse
+import threading 
  
 
 logging.basicConfig(level=logging.DEBUG,
@@ -13,9 +14,9 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%m-%d %H:%M:%S')
 
 
-def main(port, ring, timeout):
+def main(name, port, ring, timeout):
     # Create a logger for the client
-    logger = logging.getLogger('Client')
+    logger = logging.getLogger('Client {}'.format(name))
     
     # UDP Socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -54,15 +55,23 @@ def main(port, ring, timeout):
     o = pickle.loads(p)
     logger.info('Got order %s', o['args'])
 
-    # Close socket
-
-    return 0
-    socket.close()
+    return 0 
+    #Close socket
+    #thread.join()
+    #socket.close()
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='Pi HTTP server')
     parser.add_argument('-p', dest='port', type=int, help='client port', default=5004)
     parser.add_argument('-r', dest='ring', type=int, help='ring ports ', default=5000)
     parser.add_argument('-t', dest='timeout', type=int, help='socket timeout', default=60)
+    parser.add_argument('-c', dest='clients', type=int, help='num clients ', default=3)
     args = parser.parse_args()
-main(args.port, ('localhost', args.ring), args.timeout)
+    
+    names=['Batman','IronMan','WonderWoman','BlackWidow','Nakia','CamilaUachave','DiogoGomes','JeanBrito','MarioAntunes']
+    
+    for i in range(args.clients):
+        client_name="{} {}".format(random.choice(names),i)
+        thread = threading.Thread(target=main, args=(client_name, args.port+i, ('localhost', args.ring), args.timeout))
+        thread.start()

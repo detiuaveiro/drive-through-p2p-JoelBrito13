@@ -3,8 +3,6 @@
 def contains_successor(self_id, successor_id):
     if self_id+1 == successor_id:
         return True
-    elif self_id==3 and successor_id==0:
-        return True
     return False
 
 def check_lst_true(lst):
