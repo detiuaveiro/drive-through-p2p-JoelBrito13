@@ -1,4 +1,9 @@
 # Drive-Through Restaurant P2P
+This project is composed by several nodes, those entities are the _Restaurant_, _Clerk_ , _Chef_ and _Waiter_. The nodes communicate between them in a ring mode to deal with the request and prepare the response. 
+Each node has two queue structs, a entrance and a exit queue (__queuein__ and __queueout__), the node process the messages located in queuein and stores the responses in queueout.
+
+The enitites in the fisrt moment, they only now the first node in the ring, after exchange some messages, the nodes the others address and setup the plattaform. 
+The Client send a request to the Restaurant that initiate a single flow of messages that runs accross all entities. When a node receives a message, its checks if its responsibility, depending of the content of the message, the node will add it to its entrance queue. If the message flow is empty, the node inserts a message in the flow, or just pass it to the next node in the ring.
 
 ## Prerequisites
 
@@ -15,6 +20,10 @@ client:
 ```console
 $ python client.py
 ```
+simulation:
+```console
+$ python simulation.py
+```
 
 ## Git Upstream
 
@@ -30,6 +39,8 @@ $ git merge upstream/master
 ## Authors
 
 * **Mário Antunes** - [mariolpantunes](https://github.com/mariolpantunes)
+* **Camila Uachave** - [CamilaUachave](https://github.com/CamilaUachave)
+* **Jean Brito** - [JeanBrito](https://github.com/JoelBrito13)
 
 ## License
 
